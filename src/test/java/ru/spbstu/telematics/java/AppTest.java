@@ -1,6 +1,8 @@
 package ru.spbstu.telematics.java;
 
 import org.junit.jupiter.api.Test;
+import ru.spbstu.telematics.java.exceptions.JsonException;
+import ru.spbstu.telematics.java.exceptions.MappingException;
 
 import java.util.*;
 
@@ -81,7 +83,7 @@ public class AppTest {
     }
 
     @Test
-    void parseString() throws JsonException {
+    void parseString() throws JsonException, JsonException {
         String result = JsonParser.parseStringToClass("\"test\"", String.class);
         assertEquals("test", result);
     }
