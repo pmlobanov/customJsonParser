@@ -514,6 +514,86 @@ public class AppTest {
         assertEquals("nestedValue", result.parentNested.nestedField);
         assertEquals("childValue", result.childField);
     }
+    static class Entity {
+        private EntityInner data;
+
+        public EntityInner getData() {
+            return data;
+        }
+
+        @Override
+        public String toString() {
+            return "Entity{data=" + data + '}';
+        }
+    }
+
+    static class EntityInner {
+        private ArrayList<Object> data;
+
+        public ArrayList<Object> getData() {
+            return data;
+        }
+
+    }
+
+    @Test
+    void someNewEntityTest() throws JsonException {
+        // Подготовка
+        String jsonInput = "{\"data\":{\"data\":[[[1,2,3], [{\"val\":1},{\"val\":2}], [true, true, false]], [\"a\", \"b\",\"c\"]]}}";
+
+        // Выполнение
+        Entity result = JsonParser.parseStringToClass(jsonInput, Entity.class);
+
+        // Проверки
+        assertNotNull(result);
+        assertNotNull(result.getData());
+        assertNotNull(result.getData().getData());
+
+        ArrayList<Object> outerList = result.getData().getData();
+        assertEquals(2, outerList.size());
+
+        // Проверка первого элемента (вложенные списки)
+        Object firstItem = outerList.get(0);
+        assertTrue(firstItem instanceof List);
+
+        List<?> firstList = (List<?>) firstItem;
+        assertEquals(3, firstList.size());
+
+        // Проверка [1,2,3]
+        assertTrue(firstList.get(0) instanceof List);
+        List<?> numbers = (List<?>) firstList.get(0);
+        assertEquals(1, numbers.get(0));
+        assertEquals(2, numbers.get(1));
+        assertEquals(3, numbers.get(2));
+
+        // Проверка [{"val":1},{"val":2}]
+        assertTrue(firstList.get(1) instanceof List);
+        List<?> objects = (List<?>) firstList.get(1);
+        assertEquals(2, objects.size());
+
+        assertTrue(objects.get(0) instanceof Map);
+        Map<?, ?> firstObj = (Map<?, ?>) objects.get(0);
+        assertEquals(1, firstObj.get("val"));
+
+        assertTrue(objects.get(1) instanceof Map);
+        Map<?, ?> secondObj = (Map<?, ?>) objects.get(1);
+        assertEquals(2, secondObj.get("val"));
+
+        // Проверка [true, true, false]
+        assertTrue(firstList.get(2) instanceof List);
+        List<?> booleans = (List<?>) firstList.get(2);
+        assertEquals(true, booleans.get(0));
+        assertEquals(true, booleans.get(1));
+        assertEquals(false, booleans.get(2));
+
+        // Проверка второго элемента ["a", "b", "c"]
+        Object secondItem = outerList.get(1);
+        assertTrue(secondItem instanceof List);
+        List<?> strings = (List<?>) secondItem;
+        assertEquals("a", strings.get(0));
+        assertEquals("b", strings.get(1));
+        assertEquals("c", strings.get(2));
+    }
 
     @Test
     void someNewTest() throws JsonException {

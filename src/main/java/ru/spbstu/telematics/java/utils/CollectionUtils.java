@@ -10,7 +10,7 @@ import static ru.spbstu.telematics.java.mapper.Mapper.convertValue;
 
 public class CollectionUtils {
 
-    public static Object convertToArray(Object value, Class<?> arrayType) throws JsonException, ClassNotFoundException, NoSuchFieldException {
+    public static Object convertToArray(Object value, Class<?> arrayType) throws Exception {
         Class<?> componentType = arrayType.getComponentType();
 
         if (value instanceof Object[]) {
@@ -46,7 +46,7 @@ public class CollectionUtils {
 
     // Вспомогательные методы:
     public static <T> T convertListToArray(List<Object> list, Class<?> componentType)
-            throws JsonException, ClassNotFoundException, NoSuchFieldException {
+            throws Exception {
         Object array = Array.newInstance(componentType, list.size());
         for (int i = 0; i < list.size(); i++) {
             Array.set(array, i, convertValue(list.get(i), componentType));

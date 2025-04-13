@@ -39,12 +39,32 @@ public class Mapper {
                  FieldNotFoundException e) {
             throw new MappingException("Failed to map field: " + e.getMessage());
         }
-        catch (JsonException e) {
+        catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    public static Object convertValue(Object value, Class<?> targetType) throws JsonException, ClassNotFoundException, NoSuchFieldException {
+    @SuppressWarnings("unchecked")
+    private static <T> T processAsMap(Map<String, Object> fieldMap, Class<T> targetType)
+            throws Exception {
+
+        // Если targetType - интерфейс Map, возвращаем HashMap
+        if (targetType.isInterface() && Map.class.isAssignableFrom(targetType)) {
+            return (T) new HashMap<>(fieldMap);
+        }
+
+        // Пытаемся создать экземпляр указанного типа Map
+        try {
+            T mapInstance = targetType.getDeclaredConstructor().newInstance();
+            ((Map<String, Object>) mapInstance).putAll(fieldMap);
+            return mapInstance;
+        } catch (Exception e) {
+            // Если не получилось, возвращаем HashMap
+            return (T) new HashMap<>(fieldMap);
+        }
+    }
+
+    public static Object convertValue(Object value, Class<?> targetType) throws Exception {
         if (value == null) return null;
 
         // Обработка массивов
@@ -80,6 +100,9 @@ public class Mapper {
 
             // Если не нашли подходящий подкласс, пробуем создать экземпляр targetType
             try {
+                if(targetType.equals(Object.class)){
+                    return processAsMap(fieldMap, targetType);
+                }
                 return setFieldsInClass(fieldMap, targetType);
             } catch (Exception e) {
                 throw new NoSuchFieldException("No matching subclass found and cannot create instance of " + targetType.getName());
