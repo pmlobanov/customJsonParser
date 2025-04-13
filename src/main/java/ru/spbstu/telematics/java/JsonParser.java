@@ -40,8 +40,32 @@ public class JsonParser {
             }
             //Обработка объектов
             if (trimmedInput.startsWith("{")) {
-                Map<String, Object> parsedMap = parseStringToMap(trimmedInput);
-                return setFieldsInClass(parsedMap, targetClass);
+                if(Map.class.isAssignableFrom(targetClass)){
+                    try {
+                        // Создаем экземпляр нужного типа Map
+                        T mapInstance = (T) targetClass.getDeclaredConstructor().newInstance();
+
+                        // Парсим JSON в промежуточную Map
+                        Map<String, Object> parsedMap = parseStringToMap(trimmedInput);
+
+                        // Если targetClass - интерфейс Map, возвращаем HashMap
+                        if (targetClass.isInterface()) {
+                            return (T) new HashMap<>(parsedMap);
+                        }
+
+                        // Копируем данные в созданный экземпляр
+                        ((Map<String, Object>) mapInstance).putAll(parsedMap);
+                        return mapInstance;
+                    } catch (Exception e) {
+                        // Если не удалось создать экземпляр, возвращаем HashMap
+                        return (T) parseStringToMap(trimmedInput);
+                    }
+                }
+                else {
+                    Map<String, Object> parsedMap = parseStringToMap(trimmedInput);
+                    return setFieldsInClass(parsedMap, targetClass);
+                }
+
             }
             // Обработка примитивных значений
             if (isSimpleValueType(targetClass)) {

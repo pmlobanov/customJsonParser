@@ -5,6 +5,7 @@ import ru.spbstu.telematics.java.exceptions.JsonException;
 import ru.spbstu.telematics.java.exceptions.MappingException;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -512,6 +513,77 @@ public class AppTest {
 
         assertEquals("nestedValue", result.parentNested.nestedField);
         assertEquals("childValue", result.childField);
+    }
+
+    @Test
+    void someNewTest() throws JsonException {
+        String jsonInput = "{\"data\":{\"data\":[[[1,2,3], [{\"val\":1},{\"val\":2}], [true, true, false]], [\"a\", \"b\",\"c\"]]}}";
+
+        // Парсинг JSON
+        Map<String, Object> result = JsonParser.parseStringToClass(jsonInput, ConcurrentHashMap.class);
+
+        // Проверка структуры
+        assertNotNull(result);
+        assertTrue(result.containsKey("data"));
+
+        Object dataObj = result.get("data");
+        assertTrue(dataObj instanceof Map);
+
+        Map<?, ?> dataMap = (Map<?, ?>) dataObj;
+        assertTrue(dataMap.containsKey("data"));
+
+        Object nestedData = dataMap.get("data");
+        assertTrue(nestedData instanceof List);
+
+        List<?> outerList = (List<?>) nestedData;
+        assertEquals(2, outerList.size());
+
+        // Проверка первого элемента (вложенные массивы)
+        Object firstElement = outerList.get(0);
+        assertTrue(firstElement instanceof List);
+
+        List<?> firstList = (List<?>) firstElement;
+        assertEquals(3, firstList.size());
+
+        // Проверка массива чисел [1,2,3]
+        Object numbersArray = firstList.get(0);
+        assertTrue(numbersArray instanceof List);
+        List<?> numbers = (List<?>) numbersArray;
+        assertEquals(3, numbers.size());
+        assertEquals(1, numbers.get(0));
+        assertEquals(2, numbers.get(1));
+        assertEquals(3, numbers.get(2));
+
+        // Проверка массива объектов [{"val":1},{"val":2}]
+        Object objectsArray = firstList.get(1);
+        assertTrue(objectsArray instanceof List);
+        List<?> objects = (List<?>) objectsArray;
+        assertEquals(2, objects.size());
+
+        Map<?, ?> firstObject = (Map<?, ?>) objects.get(0);
+        assertEquals(1, firstObject.get("val"));
+
+        Map<?, ?> secondObject = (Map<?, ?>) objects.get(1);
+        assertEquals(2, secondObject.get("val"));
+
+        // Проверка массива boolean [true, true, false]
+        Object booleansArray = firstList.get(2);
+        assertTrue(booleansArray instanceof List);
+        List<?> booleans = (List<?>) booleansArray;
+        assertEquals(3, booleans.size());
+        assertEquals(true, booleans.get(0));
+        assertEquals(true, booleans.get(1));
+        assertEquals(false, booleans.get(2));
+
+        // Проверка второго элемента ["a", "b", "c"]
+        Object secondElement = outerList.get(1);
+        assertTrue(secondElement instanceof List);
+
+        List<?> strings = (List<?>) secondElement;
+        assertEquals(3, strings.size());
+        assertEquals("a", strings.get(0));
+        assertEquals("b", strings.get(1));
+        assertEquals("c", strings.get(2));
     }
 
     @Test
